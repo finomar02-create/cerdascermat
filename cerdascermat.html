@@ -448,6 +448,7 @@
     // Config
     let timePerQuestion = 30; // detik default
     let currentLevel = null; // Tidak ada level yang dipilih di awal
+    let showFeedback = true; // Tampilkan indikator benar/salah
 
     // State
     let qIndex = 0;
@@ -730,4 +731,44 @@
       const name = (playerNameInput.value || 'Anonim').trim();
       if(!name) return alert('Masukkan nama terlebih dahulu.');
       const list = getLeaderboard();
-      list.push({name,
+      list.push({name, score:score, level:currentLevel, at:Date.now()});
+      list.sort((a,b)=>b.score - a.score || a.at - b.at);
+      saveLeaderboard(list.slice(0,50));
+      renderLeaderboard();
+      alert('Skor tersimpan di leaderboard lokal.');
+    }
+
+    function renderLeaderboard(){
+      const list = getLeaderboard();
+      leaderboardTableBody.innerHTML = '';
+      if(list.length === 0){ 
+        leaderboardTableBody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">Belum ada data.</td></tr>'; 
+        return; 
+      }
+      list.forEach((it,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${idx+1}</td><td>${escapeHtml(it.name)}</td><td>${it.score}</td><td>${it.level.toUpperCase()}</td>`;
+        leaderboardTableBody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(s){ 
+      return String(s).replace(/[&<>"']/g, (c)=>({ 
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;" 
+      }[c])); 
+    }
+
+    function resetAll(){ 
+      stopTimer(); 
+      qIndex=0; 
+      score=0; 
+      answers = []; 
+      answered = [];
+      document.getElementById('score').textContent = 0; 
+    }
+
+    // On page load
+    init();
+  </script>
+</body>
+</html>
